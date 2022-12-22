@@ -22,7 +22,7 @@ def interp_fun(lat,lon,data):
     daa = daa.where(daa!=0 ,np.nan)
     return daa
 
-def mls_o3_profile(fil):
+def mls_o3_profile(fil, time):
     oo = []
     nlat = np.arange(-90,90.5,0.5)
     nlon = np.arange(-180,180.5,0.5)
@@ -42,13 +42,17 @@ def mls_o3_profile(fil):
         con = pd.DataFrame(dd['HDFEOS/SWATHS/O3/Data Fields/Convergence'][:],columns=['con'])
         sza = pd.DataFrame(dd['HDFEOS/SWATHS/O3/Geolocation Fields/SolarZenithAngle'][:],columns=['sza'])
         lst = pd.DataFrame(dd['HDFEOS/SWATHS/O3/Geolocation Fields/LocalSolarTime'][:],columns=['lst'])
-        data.loc[qua['qua'] < 1.3] = np.nan
-        data.loc[con['con'] > 1.05] = np.nan
-        data.loc[sta['sta'] != 0] = np.nan
+        data.loc[qua['qua'] < 1] = np.nan
+        data.loc[con['con'] > 1.03] = np.nan
+        sta1 = (sta['sta'].mod(2).eq(0)) 
+        data.loc[sta1 != True] = np.nan
         data.loc[pre['pre'] < 0] = np.nan
-        data.loc[sza['sza'] > 89] = np.nan
-        data.loc[lst['lst'] > 16] = np.nan
-        data.loc[lst['lst'] < 10] = np.nan
+        if time=='day':
+            data.loc[sza['sza'] > 89] = np.nan
+        elif time=='night':
+            data.loc[sza['sza'] < 89] = np.nan
+        else:
+            pass
         df = np.concatenate((lon,lat,data), axis=1)
         ddd = pd.DataFrame(df, columns=['lon', 'lat', 'data'])   
         final_dat = ddd.groupby(['lat','lon']).mean().reset_index() 
