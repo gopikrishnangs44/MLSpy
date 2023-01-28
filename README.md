@@ -4,8 +4,11 @@ MLS ozone profile
 
 To install, download the repository
 
-cd MLSpy
-python install setup.py
+follow the steps
+
+1. cd MLSpy
+
+2. python install setup.py
 
 
 
