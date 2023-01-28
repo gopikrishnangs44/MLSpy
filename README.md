@@ -8,7 +8,7 @@ follow the steps
 
 1. cd MLSpy
 
-2. python install setup.py
+2. python setup.py install 
 
 
 
