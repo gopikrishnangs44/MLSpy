@@ -6,7 +6,7 @@ To install, download the repository
 
 follow the steps
 
-1. cd MLSpy
+1. cd MLSpy-main
 
 2. pip install .
 
