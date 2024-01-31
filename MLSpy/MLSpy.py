@@ -4,17 +4,17 @@ import xarray as xr
 import pandas as pd
 import h5py
 
-def interp_fun(lat,lon,data):
+def interp_fun(lat,lon,data, base):
     lat,lon,data = np.array(lat),np.array(lon),np.array(data)
     data = np.nan_to_num(data,nan=-9999)
     nan_index = np.argwhere(data==-9999)
     lat,lon, data = np.delete(lat, nan_index),np.delete(lon, nan_index),np.delete(data, nan_index)
-    nlat = np.arange(-90,90.5,0.5)
-    nlon = np.arange(-180,180.5,0.5)
-    pp = pd.DataFrame(np.zeros((361,721)))
+    nlat = np.arange(-90,90+2*base,base)
+    nlon = np.arange(-180,180+2*base,base)
+    pp = pd.DataFrame(np.zeros((round((180/base)+base),round((360/base)+base))))
     for i,j,k in zip(lat, lon, data):
         if k!=0:
-            j1,i1 = int(((round(j*2)/2)+180)*2), int(((round(i*2)/2)+90)*2)
+            j1,i1 = np.where(nlon==(round(j/base)*base))[0][0], np.where(nlat==(round(i/base)*base))[0][0]
             if pp.iloc[i1,j1] == 0 :
                 pp.iloc[i1,j1] = k
             else:
