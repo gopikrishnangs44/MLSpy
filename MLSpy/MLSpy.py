@@ -9,16 +9,23 @@ def interp_fun(lat,lon,data, base):
     data = np.nan_to_num(data,nan=-9999)
     nan_index = np.argwhere(data==-9999)
     lat,lon, data = np.delete(lat, nan_index),np.delete(lon, nan_index),np.delete(data, nan_index)
-    nlat = np.arange(-90,90+2*base,base)
-    nlon = np.arange(-180,180+2*base,base)
+    if base<0.75:
+        nlat = np.arange(-90,90,base)
+        nlon = np.arange(-180,180,base) 
+    else:
+        nlat = np.arange(-90,90+base,base)
+        nlon = np.arange(-180,180+base,base)
     pp = pd.DataFrame(np.zeros((round((180/base)+base),round((360/base)+base))))
     for i,j,k in zip(lat, lon, data):
         if k!=0:
-            j1,i1 = np.where(nlon==(round(j/base)*base))[0][0], np.where(nlat==(round(i/base)*base))[0][0]
-            if pp.iloc[i1,j1] == 0 :
-                pp.iloc[i1,j1] = k
-            else:
-                pp.iloc[i1,j1] = (pp.iloc[i1,j1] + k)/2
+            try:
+                j1,i1 = np.where(nlon==(round(j/base)*base))[0][0], np.where(nlat==(round(i/base)*base))[0][0]
+                if pp.iloc[i1,j1] == 0 :
+                    pp.iloc[i1,j1] = k
+                else:
+                    pp.iloc[i1,j1] = (pp.iloc[i1,j1] + k)/2
+            except:
+                pass
         else:
             pass
     daa = xr.DataArray(pp, coords=[nlat,nlon], dims=['lat','lon'])
