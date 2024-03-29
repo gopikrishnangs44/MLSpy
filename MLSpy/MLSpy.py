@@ -4,35 +4,34 @@ import xarray as xr
 import pandas as pd
 import h5py
 
-def interp_fun(lat,lon,data, base):
-    lat,lon,data = np.array(lat),np.array(lon),np.array(data)
-    data = np.nan_to_num(data,nan=-9999)
-    nan_index = np.argwhere(data==-9999)
-    lat,lon, data = np.delete(lat, nan_index),np.delete(lon, nan_index),np.delete(data, nan_index)
-    if base<0.75:
-        nlat = np.arange(-90,90,base)
-        nlon = np.arange(-180,180,base) 
-    else:
-        nlat = np.arange(-90,90+base,base)
-        nlon = np.arange(-180,180+base,base)
-    pp = pd.DataFrame(np.zeros((round((180/base)+base),round((360/base)+base))))
-    for i,j,k in zip(lat, lon, data):
-        if k!=0:
+def interp_fun(lat, lon, data, base):
+    lat, lon, data = np.array(lat), np.array(lon), np.array(data)
+    data = np.nan_to_num(data, nan=-9999)
+    nan_index = np.argwhere(data == -9999)
+    lat, lon, data = np.delete(lat, nan_index), np.delete(lon, nan_index), np.delete(data, nan_index)
+    
+    nlat = np.arange(-90, 90 + base, base)
+    nlon = np.arange(-180, 180 + base, base)
+    
+    pp = pd.DataFrame(np.zeros((len(nlat), len(nlon))))
+    
+    for i, j, k in zip(lat, lon, data):
+        if k != 0:
             try:
-                j1,i1 = np.where(nlon==(round(j/base)*base))[0][0], np.where(nlat==(round(i/base)*base))[0][0]
-                if pp.iloc[i1,j1] == 0 :
-                    pp.iloc[i1,j1] = k
+                j1 = int(np.floor((j + 180) / base))
+                i1 = int(np.floor((i + 90) / base))
+                if pp.iloc[i1, j1] == 0:
+                    pp.iloc[i1, j1] = k
                 else:
-                    pp.iloc[i1,j1] = (pp.iloc[i1,j1] + k)/2
+                    pp.iloc[i1, j1] = (pp.iloc[i1, j1] + k) / 2
             except:
                 pass
-        else:
-            pass
-    daa = xr.DataArray(pp, coords=[nlat,nlon], dims=['lat','lon'])
-    daa = daa.where(daa!=0 ,np.nan)
+    
+    daa = xr.DataArray(pp, coords=[nlat, nlon], dims=['lat', 'lon'])
+    daa = daa.where(daa != 0, np.nan)
     return daa
 
-def mls_o3_profile(fil, time):
+def mls_o3_profile(fil, base, time):
     oo = []
     nlat = np.arange(-90,90.5,0.5)
     nlon = np.arange(-180,180.5,0.5)
@@ -66,7 +65,7 @@ def mls_o3_profile(fil, time):
         df = np.concatenate((lon,lat,data), axis=1)
         ddd = pd.DataFrame(df, columns=['lon', 'lat', 'data'])   
         final_dat = ddd.groupby(['lat','lon']).mean().reset_index() 
-        aj = interp_fun(final_dat['lat'], final_dat['lon'], final_dat['data'])
+        aj = interp_fun(final_dat['lat'], final_dat['lon'], final_dat['data'], base)
         oo.append(aj)
     mm = xr.DataArray(oo, coords=[levs, nlat, nlon], dims=['levs','lat','lon'])
     oo = []
